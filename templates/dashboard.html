@@ -124,13 +124,32 @@
         document.querySelector('.logout-btn').addEventListener('click', function() {
             window.location.href = 'login';
         });
+         
+          document.querySelector('.search-btn').addEventListener('click', function() {
+             const searchValue = document.querySelector('.search-bar').value.toLowerCase();
+             let found = false; 
+             const listItems = document.querySelectorAll('.database-list li');
+             listItems.forEach(item => {
+                 if (item.textContent.toLowerCase().includes(searchValue)) {
+                 item.style.display = '';
+                 found = true;
+           } else {
+                 item.style.display = 'none';
+        }
+     });
+           if (!found) {
+               document.querySelector('.database-details').innerHTML = `
+               <h3>Database Details</h3>
+               <p>No Valid Database Selected!</p>`;
+    }
+});
 
         document.getElementById('mysql-database').addEventListener('click', function() {
             fetch('/get-databases')
                 .then(response => response.json())
                 .then(data => {
                     const detailPanel = document.querySelector('.database-details');
-                    detailPanel.innerHTML = '<h3>Databases</h3><ul>';
+                    detailPanel.innerHTML = '<h3>MySQL Databases</h3><ul>';
                     data.forEach(db => {
                         detailPanel.innerHTML += `<li onclick="showTables('${db}')">${db}</li>`;
                     });
