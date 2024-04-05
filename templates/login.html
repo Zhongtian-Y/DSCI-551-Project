@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,13 +28,14 @@
             margin-bottom: 20px;
         }
 
-        input[type="text"], input[type="password"] {
+        input[type="text"],
+        input[type="password"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             border: 1px solid #ddd;
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
 
         input[type="submit"] {
@@ -71,7 +73,7 @@
         <h2>Login</h2>
 
         <div class="radio-group">
-            <input type="radio" id="user" name="type" value="normal" checked>
+            <input type="radio" id="user" name="type" value="user" checked>
             <label for="user">User</label>
             <input type="radio" id="administrator" name="type" value="administrator">
             <label for="administrator">Administrator</label>
@@ -79,10 +81,22 @@
 
         Username: <input type="text" name="username" required><br>
         Password: <input type="password" name="password" required><br>
-        <input type="submit" value="Login">
+        <input type="submit" id="login" value="Login">
 
     </form>
 </body>
+<script>
+    document.querySelector('#user').addEventListener('click', function (event) {
+        // console.log(document.querySelector('form').querySelector('input[type="radio"]').value)
+        console.log('user')
+        localStorage.setItem('type', 'user')
+    })
+    document.querySelector('#administrator').addEventListener('click', function (event) {
+        // console.log(document.querySelector('form').querySelector('input[type="radio"]').value)
+        console.log('administrator')
+        localStorage.setItem('type', 'administrator')
+
+    })
+</script>
 
 </html>
-
