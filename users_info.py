@@ -1,11 +1,4 @@
-'''
-Author: HeroNexus 1528264038@qq.com
-Date: 2024-03-17 16:15:03
-LastEditors: HeroNexus 1528264038@qq.com
-LastEditTime: 2024-03-17 21:30:50
-FilePath: \project\users_info.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-'''
+
 from flask import Flask
 from flask_mysqldb import MySQL
 from pymongo import MongoClient
