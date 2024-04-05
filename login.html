@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        form {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]: hover {
+            background-color: #0056b3;
+        }
+
+        .radio-group {
+            margin: 20px 0;
+        }
+
+        .radio-group label {
+            margin-right: 20px;
+            font-size: 16px;
+        }
+
+        input[type="radio"] {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <form action="" method="post">
+
+        <h2>Login</h2>
+
+        <div class="radio-group">
+            <input type="radio" id="user" name="type" value="user" checked>
+            <label for="user">User</label>
+            <input type="radio" id="administrator" name="type" value="administrator">
+            <label for="administrator">Administrator</label>
+        </div>
+
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" id="login" value="Login">
+
+    </form>
+</body>
+<script>
+    document.querySelector('#user').addEventListener('click', function (event) {
+        // console.log(document.querySelector('form').querySelector('input[type="radio"]').value)
+        console.log('user')
+        localStorage.setItem('type', 'user')
+    })
+    document.querySelector('#administrator').addEventListener('click', function (event) {
+        // console.log(document.querySelector('form').querySelector('input[type="radio"]').value)
+        console.log('administrator')
+        localStorage.setItem('type', 'administrator')
+
+    })
+</script>
+
+</html>
