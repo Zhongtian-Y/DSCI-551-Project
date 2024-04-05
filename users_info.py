@@ -9,7 +9,7 @@ app = Flask(__name__)
 # MySQL config
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'dsci551'
+app.config['MYSQL_PASSWORD'] = 'Root'
 app.config['MYSQL_DB'] = 'usercrud'
 
 mysql = MySQL(app)
@@ -27,6 +27,8 @@ def insert_multiple_users(users_data):
     # Hash the password
         users_to_insert = [
             (users["id"], users["username"], generate_password_hash(users["password"]), users["type"]) for users in users_data]
+        users_to_insert_mongo = [
+            {"id": user["id"], "username": user["username"], "hashed_password": generate_password_hash(user["password"]), "type": user["type"]} for user in users_data]
     
     # Insert new user and check if it is successful
         query = "INSERT INTO users (id, username, hashed_password, type) VALUES (%s, %s, %s, %s)"

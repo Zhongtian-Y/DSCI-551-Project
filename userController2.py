@@ -56,15 +56,19 @@ def login():
         user = cur.fetchone()
         cur.close()
     
-    # redirect to the dashboard if username and password is in the database, with username, type and password matching
-        if user and password == user[1] and user[2] == type:
+        # redirect to the dashboard if username and password is in the database, with username, type and password matching
+        if user and check_password_hash(user[1], password) and user[2] == type:
             user_obj = User(id=user[0], username=username, type=user[2])
             login_user(user_obj)
             return redirect(url_for('dashboard'))
         
         # return the error message if user type does not match other information
+        if user and check_password_hash(user[1], password) and not user[2] == type:
+            return 'User type does not match'
+        
+        # return the error message if password and username are not correct
         else:
-            return jsonify({"message": "User type does not match", "status": "error"}), 500
+            return 'Invalid username or password'
         
     return render_template('login.html')
 
