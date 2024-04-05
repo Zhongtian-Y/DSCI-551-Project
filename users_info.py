@@ -1,5 +1,7 @@
+
 from flask import Flask
 from flask_mysqldb import MySQL
+from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
@@ -8,9 +10,15 @@ app = Flask(__name__)
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'dsci551'
-app.config['MYSQL_DB'] = 'users_info'
+app.config['MYSQL_DB'] = 'usercrud'
 
 mysql = MySQL(app)
+
+# MongoDB configuration
+mongo_client = MongoClient('mongodb://localhost:27017/')  # Update the connection string if needed
+mongo_db = mongo_client['usercrud']  # The MongoDB database name
+mongo_collection = mongo_db['users']  # The MongoDB collection name
+
 
 # Insert user info starts
 def insert_multiple_users(users_data):
@@ -32,6 +40,12 @@ def insert_multiple_users(users_data):
         finally:
             if cur: 
                 cur.close()
+# Insert into MongoDB
+        try:
+            mongo_collection.insert_many(users_to_insert_mongo)
+            print("Users inserted into MongoDB successfully.")
+        except Exception as e:
+            print(f"An error occurred with MongoDB: {e}")
 
 if __name__ == "__main__":
     users_data = [
