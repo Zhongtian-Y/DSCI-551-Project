@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/dashboard.css">
+</head>
+
+<body>
+    <button class="logout-btn">Log Out</button>
+    <div class="dashboard-container">
+        <div class="redirect-button">
+            <a href="http://127.0.0.1:5000/page3" style="text-decoration: none; color: inherit;">
+                <button>To Upload Data</button>
+            </a>
+        </div>
+
+        <div class="redirect-button">
+            <a href="http://127.0.0.1:5000/databases" style="text-decoration: none; color: inherit;">
+                <button>To Manage Mysql Data</button>
+            </a>
+        </div>
+        <div class="database-panel">
+            <input class="search-bar" type="text" placeholder="Search database...">
+            <!-- search -->
+            <button class="search-btn">🔍</button>
+            <ul class="database-list">
+                <!-- Note: The ID 'mysql-database' is used for the MySQL Database list item for JavaScript interaction -->
+                <!-- mysql database -->
+                <li class="sql" id="mysql-database">MySQL Database</li>
+                <li class="nosql">Firebase Realtime Database</li>
+                <li class="nosql" id="MongoDB-database">MongoDB Database</li>
+            </ul>
+        </div>
+        <div class="detail-panel">
+            <!-- database details -->
+            <div class="database-details">
+                <h3>Database Details</h3>
+                <p>No Valid Database Selected!</p>
+            </div>
+        </div>
+
+        <div class="database-data">
+            <p>No Data</p>
+        </div>
+
+
+
+    </div>
+
+    <script src="../static/js/dashboard.js"></script>
+</body>
+
+</html>

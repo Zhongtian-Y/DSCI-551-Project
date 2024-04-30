@@ -1,0 +1,218 @@
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+.logout-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background-color: #0056b3;
+}
+
+.dashboard-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.database-panel,
+.detail-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(50% - 20px);
+}
+
+.search-bar {
+    flex-grow: 1;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px 0 0 8px;
+    font-size: 16px;
+    width: calc(90% - 20px);
+}
+
+.search-btn {
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color: #0056b3;
+}
+
+.database-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.database-list li {
+    padding: 10px;
+    margin: 8px 0;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.sql {
+    background-color: #ffdddd;
+}
+
+.nosql {
+    background-color: #ddffdd;
+}
+
+.database-list li:hover {
+    background-color: #f0f0f0;
+}
+
+.database-details {
+    border-radius: 8px;
+    padding: 10px;
+    height: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.database-details h3 {
+    color: #007bff;
+}
+
+.database-details p {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.database-list {
+    border-radius: 8px;
+    padding: 10px;
+    height: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.database-data {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(50% - 20px);
+}
+
+.database-data h3 {
+    color: #007bff;
+}
+
+.database-data p {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.database-data .item {
+
+    padding: 12px;
+    background-color: #ffdddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+
+.database-data .item+.item {
+    margin-top: 12px;
+}
+
+.redirect-button {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(50% - 20px);
+}
+
+@media (max-width: 768px) {
+
+    .database-panel,
+    .detail-panel {
+        width: 100%;
+    }
+}
+
+.redirect-button {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(50% - 20px);  /* Adjusts width to fit within the flexbox layout */
+    display: flex;
+    justify-content: center;  /* Centers the button horizontally */
+    align-items: center;      /* Centers the button vertically */
+    margin: 10px 0;           /* Adds top and bottom margin for spacing */
+}
+
+.redirect-button a {
+    text-decoration: none;
+    color: inherit;  /* Inherits text color from parent */
+    width: 100%;     /* Link covers the full width of the button for easier clicking */
+}
+
+.redirect-button button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;    /* Button fills the available space inside the link */
+}
+
+.redirect-button button:hover {
+    background-color: #0056b3;
+}
+.logout-btn, .search-btn, .redirect-button button {
+    background-color: #add8e6; /* 淡蓝色 */
+    color: white;
+}
+
+.logout-btn:hover, .search-btn:hover, .redirect-button button:hover {
+    background-color: #97c4dd; /* 鼠标悬浮时的更深淡蓝色 */
+}
+
+.database-details h3, .database-data h3 {
+    color: #add8e6; /* 标题使用同样的淡蓝色 */
+}
+
+.sql {
+    background-color: #e0f1fd; /* 更浅的淡蓝色背景 */
+}
+
+.nosql {
+    background-color: #f0f8fd; /* 最浅的淡蓝色背景 */
+}
+
+/* 更新其他元素的边框或阴影颜色 */
+.database-panel, .detail-panel, .database-data, .redirect-button {
+    box-shadow: 0 4px 8px rgba(173, 216, 230, 0.3); /* 使用淡蓝色的阴影 */
+}
+

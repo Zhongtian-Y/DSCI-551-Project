@@ -1,0 +1,197 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <title>ManageMyDB</title>
+    <style>
+        /* Base styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f7f7f7;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container and alignment */
+.container {
+    padding-top: 30px;
+}
+
+/* Headers */
+h1, h2, h3 {
+    color: #333;
+}
+
+/* Tables and Lists */
+table {
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+th {
+    background-color: #f9f9f9;
+}
+
+td, th {
+    text-align: left;
+    padding: 12px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    padding: 8px;
+    background-color: #fff;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons and forms */
+.btn {
+    margin-top: 10px;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+textarea.form-control {
+    margin-bottom: 10px; /* Removes space below the textarea */
+}
+
+/* Specific alignment */
+.form-inline {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Results */
+#result {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjust the visibility of the logs container */
+#logsContainer {
+    margin-top: 20px;
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 768px) {
+    .form-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-inline button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <center style="margin-top:20px">
+            <h1>ManageMyDB</h1>
+        </center>
+        <form action="http://localhost:5000/ManageMyDB/logout" style="float:right"><button class="btn btn-primary"
+                type="submit">Log Out</button></form>
+    </div>
+    <div class="container" style="margin-top:30px">
+        <div class="row justify-content-md-center">
+            <div class="col-sm-4">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Your databases</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name in databases %}
+                        <tr>
+                            <td><a href="http://localhost:5000/databases/{{ name[0] }}"> {{ name[0] }} </a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="offset-sm-2 col-sm-5">
+                <h2>Execute SQL</h2>
+                <form>
+                    <textarea class="form-control" name="sqlStatement" rows=3></textarea><br>
+                    <input type="hidden" name="database" value="None">
+                    <button type="button" onclick="executeSQL();" class="btn btn-primary">Execute</button>
+                </form>
+                <div id="result">
+                </div>
+            </div>
+
+            <!-- 添加 MongoDB 日志展示按钮 -->
+            <div class="col-sm-4">
+                <button id="showLogsBtn" class="btn btn-info">Show Logs</button>
+                <div id="logsContainer" style="margin-top:20px;display:none;">
+                    <h3>MongoDB Logs:</h3>
+                    <ul id="logsList"></ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        function executeSQL() {
+            var http = new XMLHttpRequest();
+            var url = 'http://localhost:5000/execute';
+            var params = 'database=' + document.getElementsByName('database')[0].value + '&sqlStatement=' + document.getElementsByName('sqlStatement')[0].value;
+            http.open('POST', url, true);
+            http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            http.onreadystatechange = function () {
+                if (http.readyState == 4 && http.status == 200) {
+                    document.getElementById('result').innerHTML = http.responseText;
+                }
+            }
+            http.send(params);
+        }
+
+        // 绑定 MongoDB 日志展示按钮的点击事件
+        $(document).ready(function () {
+            $('#showLogsBtn').click(function () {
+                $.getJSON('/api/logs', function (logs) {
+                    var logsHtml = '';
+                    $.each(logs, function (index, log) {
+                        logsHtml += '<li>' + log.message + '</li>';
+                    });
+                    $('#logsList').html(logsHtml);
+                    $('#logsContainer').show();
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

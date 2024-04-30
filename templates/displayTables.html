@@ -1,0 +1,61 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<title>
+ManageMyDB
+</title>
+        <link rel="stylesheet" type="text/css" href="../static/css/displayTables.css">
+</head>
+<body>
+<div class="container">
+<center style="margin-top:20px"><h1>ManageMyDB</h1></center>
+</div>
+<div class="container" style="margin-top:30px">
+<div class="row justify-content-md-center">
+<div class="col-sm-4">
+<table class="table table-bordered">
+<thead><tr><th>Tables</th></tr></thead>
+<tbody>
+{% for name in tables %}
+<tr>
+<td><a href="http://localhost:5000/databases/{{ database }}/{{ name[0] }}"> {{ name[0] }} </a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+<div class="offset-sm-2 col-sm-5">
+<h2>Execute SQL</h2>
+<form>
+<textarea class="form-control" name="sqlStatement" rows=3></textarea><br>
+<input type="hidden" name="database" value="{{ database }}">
+<button type="button" onclick="executeSQL();" class="btn btn-primary">Execute</button>
+</form>
+<div id="result">
+</div>
+</div>
+</div>
+</div>
+<script>
+function executeSQL()
+{
+var http = new XMLHttpRequest();
+var url = 'http://localhost:5000/execute';
+var params = 'database='+document.getElementsByName('database')[0].value+'&sqlStatement='+document.getElementsByName('sqlStatement')[0].value;
+http.open('POST', url, true);
+
+http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+http.onreadystatechange = function() {
+    if(http.readyState == 4 && http.status == 200) {
+        document.getElementById('result').innerHTML=http.responseText;
+    }
+}
+http.send(params);
+}
+</script>
+</body>
+</html>
