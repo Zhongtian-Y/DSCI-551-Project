@@ -7,7 +7,6 @@ from sqlalchemy import create_engine
 import pandas as pd
 app = Flask(__name__)
 
-# HTML模板，包含文件上传表单
 HTML = '''
 <!DOCTYPE html>
 <html>
@@ -33,18 +32,18 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
-        return '没有文件部分在请求中'
+        return 'No file in request'
 
     file = request.files['file']
     if file.filename == '':
-        return '没有选择文件'
+        return 'No selected file'
 
     if file and file.filename.endswith('.csv'):
         return handle_csv_file(file)
     elif file and file.filename.endswith('.json'):
         return handle_json_file(file)
     else:
-        return '请上传CSV或JSON格式的文件'
+        return 'Please upload csv and json file'
 
 
 def handle_csv_file(file):
@@ -54,15 +53,14 @@ def handle_csv_file(file):
     database_name = 'db1' if int(hash_hex, 16) % 2 != 0 else 'db2'
     table_name = file.filename.replace('.csv', '').replace(' ', '_')
 
-    # 使用 SQLAlchemy 创建 MySQL 连接
     engine = create_engine(f'mysql+pymysql://root:root@localhost/{database_name}')
 
     try:
         dataframe.to_sql(table_name, con=engine, if_exists='replace', index=False)
     except Exception as e:
-        return f"数据库错误: {e}"
+        return f"Database error: {e}"
 
-    return f'文件 "{file.filename}" 已上传并插入到数据库 "{database_name}" 的表 "{table_name}" 中'
+    return f'file "{file.filename}" has been uploaded "{database_name}" into the table "{table_name}" '
 
 
 def handle_json_file(file):
@@ -78,9 +76,9 @@ def handle_json_file(file):
     elif isinstance(content, list):
         collection.insert_many(content)
     else:
-        return 'JSON文件格式不正确，需要是一个对象或对象数组'
+        return 'JSON file type is incorrect，please upload a Json file'
 
-    return f'文件 "{file.filename}" 已上传并插入到MongoDB数据库的集合 "{collection_name}" 中'
+    return f'file "{file.filename}" has been uploaded "{collection_name}"'
 
 
 if __name__ == '__main__':

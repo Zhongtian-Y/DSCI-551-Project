@@ -1,8 +1,9 @@
 document.querySelector('.logout-btn').addEventListener('click', function () {
+            localStorage.removeItem('type');
             window.location.href = 'login';
         });
-        //  search
         document.querySelector('.search-btn').addEventListener('click', function () {
+
             const searchValue = document.querySelector('.search-bar').value.toLowerCase();
             let found = false;
             const listItems = document.querySelectorAll('.database-list li');
@@ -20,7 +21,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                <p>No Valid Database Selected!</p>`;
             }
         });
-        // search in MongoDB database
         document.getElementById('MongoDB-database').addEventListener('click', function () {
             fetch('/get_data_list', {
                     method: "POST"
@@ -35,7 +35,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                     detailPanel.innerHTML += '</ul>';
                 });
         });
-        // search Mysql database
         document.getElementById('mysql-database').addEventListener('click', function () {
             fetch('/get-databases')
                 .then(response => response.json())
@@ -50,24 +49,20 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                 });
         });
 
-
-        // Post
         async function postData(url = "", data = {}) {
-            // Default options are marked with *
             const response = await fetch(url, {
-                method: "POST", // *GET, POST, PUT, DELETE, etc.
-                mode: "cors", // no-cors, *cors, same-origin
-                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-                credentials: "same-origin", // include, *same-origin, omit
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
                 headers: {
                     "Content-Type": "application/json",
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                redirect: "follow", // manual, *follow, error
-                referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                body: JSON.stringify(data), // body data type must match "Content-Type" header
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
             });
-            return response.json(); // parses JSON response into native JavaScript objects
+            return response.json();
         }
         // show tables in mysql
         function showMysqlTables(dbName) {
@@ -77,18 +72,25 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                     const detailPanel = document.querySelector('.database-details');
                     detailPanel.innerHTML = `<h3>Tables in ${dbName}</h3><ul>`;
                     data.forEach(table => {
-                        detailPanel.innerHTML += `<li onclick="showData('${table}')">${table}</li>`;
+					    if(table == "users"){
+						 detailPanel.innerHTML += `<li onclick="showData('${table}')">${table}</li>`;
+						}else if(table == "house_rent_dataset"){
+						 detailPanel.innerHTML += `<li onclick="showHouseData('${table}')">${table}</li>`;
+						}else{
+                            detailPanel.innerHTML += `<li onclick="showNormalData('${table}', '${dbName}')">${table}</li>`;
+                        }
+
                     });
                     detailPanel.innerHTML += '</ul>';
                 });
         }
 
-        // show users data in mysql
         function showData(tableName) {
             console.log(tableName)
             postData("/userListMysql", {
                 pageNum: 1,
-                pageSize: 999
+                pageSize: 999,
+                table:tableName
             }).then((data) => {
                 console.log(data);
                 const detailPanel = document.querySelector('.database-data');
@@ -139,7 +141,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             });
 
         }
-        // add user in mysql
         function addMysqlUser(tableName) {
             let params = {
 
@@ -162,7 +163,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             }
 
         }
-        // update username
         function editMysqlUserName(id, username, type, tableName) {
 
             let params = {
@@ -174,7 +174,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             if (!params.username) return
             editMysqlUser(params, tableName)
         }
-        // update user type
         function editMysqlUserType(id, username, type, tableName) {
             let params = {
                 id,
@@ -185,7 +184,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             if (!params.type) return
             editMysqlUser(params, tableName)
         }
-        // general update
         function editMysqlUser(params, tableName) {
             console.log()
             postData("/updateUser", params).then((data) => {
@@ -196,7 +194,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                 }, 1000)
             })
         }
-        // general delete
         function deleteMysqlUser(id, index, tableName) {
             postData("/deleteUser", {
                 id: id
@@ -209,11 +206,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             })
         }
 
-
-        // ----------------------------------------------
-// ----------------------------------------------
-
-        // MongoDB show user data tables
         function showMongoData(tableName) {
             console.log(tableName)
             postData("/userListMongoDB", {
@@ -223,7 +215,7 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                 console.log(data);
                 const detailPanel = document.querySelector('.database-data');
                 let isAdmin = localStorage.getItem('type')
-                if (isAdmin === 'administrator') {
+                if (isAdmin === 'administrator') { //administrator
                     detailPanel.innerHTML = `
                 <h3>MongoDBData in ${tableName}</h3>
                 <button onClick="addMongoDBUser('${tableName}')">add user</button>
@@ -270,7 +262,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             });
 
         }
-        // MongoDB add user
         function addMongoDBUser(tableName) {
             let params = {
 
@@ -287,13 +278,111 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
 
                     showMongoData(tableName)
                     setTimeout(() => {
-                        alert('user data added suffessful!')
+                        alert('user data added successful!')
                     }, 1000)
                 })
             }
 
         }
-        // update username
+
+        function showHouseData(tableName) {
+            console.log(tableName);
+            postData("/houseList", {
+                pageNum: 1,
+                pageSize: 999
+            }).then((data) => {
+                console.log(data);
+                const detailPanel = document.querySelector('.database-data');
+                let isAdmin = localStorage.getItem('type');
+                if (isAdmin === 'administrator') { //administrator
+                    console.log(isAdmin);
+                    detailPanel.innerHTML = `
+                <h3>MySQL Data in ${tableName}</h3>
+                <button onClick="addHouse()">Add House</button>
+                <ul>`;
+                    data.data.forEach((house, index) => {
+                        detailPanel.innerHTML += `
+                        <li class="item">
+                            <div class="left">
+                                HouseID: ${house.HouseID} PostedOn: ${house.PostedOn}, BHK: ${house.BHK}, Rent: ${house.Rent}, Size:${house.Size}, City:${house.City}, FurnishingStatus:${house.FurnishingStatus} 
+                            </div>
+                            <div class="right">
+                                <button onClick="deleteHouse('${house.HouseID}','${index}')">Delete</button>
+                                <button onClick="editHouse('${house.HouseID}', '${house.PostedOn}', '${house.BHK}', '${house.Rent}', '${house.Size}', '${house.City}', '${house.FurnishingStatus}')">Edit</button>
+                            </div>
+                        </li>`;
+                    });
+                    detailPanel.innerHTML += '</ul>';
+                } else {
+                    console.log(isAdmin);
+                    detailPanel.innerHTML = `
+                <h3>MySQL Data in ${tableName}</h3>
+                <ul>`;
+                    data.data.forEach((house, index) => {
+                        detailPanel.innerHTML += `
+                        <li class="item">
+                            <div class="left">
+                                HouseID: ${house.HouseID} PostedOn: ${house.PostedOn}, BHK: ${house.BHK}, Rent: ${house.Rent}, Size:${house.Size}, City:${house.City}, FurnishingStatus:${house.FurnishingStatus}
+                            </div>
+                        </li>`;
+                    });
+                    detailPanel.innerHTML += '</ul>';
+                }
+            });
+        }
+
+        function addHouse() {
+            let params = {
+                HouseID:parseInt(prompt('Enter HouseID', '')),
+                PostedOn: prompt('Enter posted date', ''),
+                BHK: parseInt(prompt('Enter BHK', '')),
+                Rent: parseFloat(prompt('Enter rent', '')),
+                Size: parseInt(prompt('Enter size', '')),
+                City: prompt('Enter city', ''),
+                FurnishingStatus: prompt('Enter furnishing status', '')
+            };
+            if (params.PostedOn && params.City && !isNaN(params.BHK) && !isNaN(params.Rent) && !isNaN(params.Size)) {
+                postData("/addHouse", params).then((data) => {
+                    showHouseData('house_rent_dataset');
+                    setTimeout(() => {
+                        alert('House data added successfully!');
+                    }, 1000);
+                });
+            }
+        }
+
+        function editHouse(HouseID, PostedOn, BHK, Rent, Size, City, FurnishingStatus) {
+            let params = {
+                HouseID: HouseID,
+                PostedOn: prompt('Modify posted date', PostedOn),
+                BHK: parseInt(prompt('Modify BHK', BHK)),
+                Rent: parseFloat(prompt('Modify rent', Rent)),
+                Size: parseInt(prompt('Modify size', Size)),
+                City: prompt('Modify city', City),
+                FurnishingStatus: prompt('Modify furnishing status', FurnishingStatus)
+            };
+            if (params.PostedOn && params.City && !isNaN(params.BHK) && !isNaN(params.Rent) && !isNaN(params.Size)) {
+            postData("/updateHouse", params).then((data) => {
+                showHouseData('house_rent_dataset');
+                setTimeout(() => {
+                    alert('House data updated successfully!');
+            }, 1000);
+            });
+        }
+    }
+
+        function deleteHouse(HouseID, index) {
+            postData("/deleteHouse", {
+                HouseID: HouseID
+            }).then((data) => {
+                console.log(data);
+                showHouseData('house_rent_dataset');
+                setTimeout(() => {
+                    alert('House data deleted successfully!');
+                }, 1000);
+            });
+        }
+
         function editMongoDBUserName(id, username, type, tableName) {
 
             let params = {
@@ -305,7 +394,6 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
             if (!params.username) return
             editMongoDBUser(params, tableName)
         }
-        // update user type
         function editMongoDBUserType(id, username, type, tableName) {
             let params = {
                 id,
@@ -338,4 +426,23 @@ document.querySelector('.logout-btn').addEventListener('click', function () {
                     alert('user data deleted successful!')
                 }, 1000)
             })
+        }
+
+        function showNormalData(tableName, dbName) {
+            console.log(tableName);
+            postData("/NormalList", {
+                pageNum: 1,
+                pageSize: 999,
+                tableName: tableName,
+                dbName: dbName
+            }).then((data) => {
+                console.log(data);
+                const detailPanel = document.querySelector('.database-data');
+                detailPanel.innerHTML = `<h3>MySQL Data in ${tableName}</h3><ul>`;
+                data.data.forEach((item, index) => {
+                    let itemDetails = Object.keys(item).map(key => `${key}: ${item[key]}`).join(', ');
+                    detailPanel.innerHTML += `<li class="item"><div class="left">${itemDetails}</div></li>`;
+                });
+                detailPanel.innerHTML += '</ul>';
+            });
         }

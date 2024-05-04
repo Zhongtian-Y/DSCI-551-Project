@@ -5,14 +5,14 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
 }
 
 form {
-    background: white;
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: #333333;
+    background-color: #ced4da;
 }
 
 h2 {
@@ -28,6 +28,7 @@ input[type="password"] {
     border-radius: 5px;
     border: 1px solid #ddd;
     box-sizing: border-box;
+    color: lightgrey;
 }
 
 input[type="submit"] {
@@ -38,6 +39,7 @@ input[type="submit"] {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+
 }
 
 input[type="submit"]:hover {
@@ -55,4 +57,12 @@ input[type="submit"]:hover {
 
 input[type="radio"] {
     margin-right: 5px;
+}
+
+.background-image {
+    background-image: url('bkgImg/bkg1.jpg');
+    height: 500px;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
 }

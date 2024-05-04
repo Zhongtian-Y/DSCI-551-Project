@@ -21,11 +21,19 @@ app.secret_key = 'dsci551'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'usercrud'
+app.config['MYSQL_DB'] = 'db1'
 mysql = MySQL(app)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+@app.route('/receive_data', methods=['POST'])
+def receive_data():
+    data = request.json
+    user_value = data.get('type')
+    session['user_type'] = user_value
+    return jsonify({"status": "success", "received": user_value})
 
 
 class MongoHandler(logging.Handler):
@@ -34,9 +42,6 @@ class MongoHandler(logging.Handler):
         self.mongo = mongo
         self.collection_name = collection_name
 
-    # def emit(self, record):
-    #     log_entry = self.format(record)
-    #     self.mongo.db[self.collection_name].insert_one({"message": log_entry})
     def emit(self, record):
         try:
             log_entry = self.format(record)
@@ -52,10 +57,7 @@ logger.addHandler(MongoHandler(mongo.db, "logs"))
 
 mongo_db = mongo.db
 users = mongo_db.users
-# collection = db["usercrud"]
 
-
-# Login process starts
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -90,6 +92,7 @@ def load_user(user_id):
         return User(id=user[0], username=user[1], type=user[2])
     return None
 
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -103,46 +106,45 @@ def login():
         user = cur.fetchone()
         cur.close()
 
-        # redirect to the dashboard if username and password is in the database, with username, type and password
-        # matching
         if user and check_password_hash(user[1], password) and user[2] == type:
             user_obj = User(id=user[0], username=username, type=user[2])
             login_user(user_obj)
-            #############################
             session['login'] = True
             session['username'] = username
             session['password'] = password
             session['dbUsername'] = "root"
             session['dbPassword'] = "root"
-            #############################
             return redirect(url_for('dashboard'))
 
-        # return the error message if user type does not match other information
         if user and check_password_hash(user[1], password) and not user[2] == type:
             return 'User type does not match'
 
-        # return the error message if password and username are not correct
         else:
             return 'Invalid username or password'
 
     return render_template('login.html')
 
 
-# render the dashboard if a user/admin successfully logged in
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    user_type = session.get('user_type')
+    if user_type == 'user':
+        print('render dashboard_user')
+        return render_template('dashboard_user.html')
+    else:
+        print(user_type)
+        print('render dashboard')
+        return render_template('dashboard.html')
 
 
-# log out from the dashboard if the user/admin click the Log out button
 @app.route('/logout')
 def logout():
+    session.clear()
     logout_user()
     return redirect(url_for('login'))
 
 
-# get list of databases
 @app.route('/get-databases')
 @login_required
 def get_databases():
@@ -153,7 +155,6 @@ def get_databases():
     return jsonify(databases)
 
 
-# get list of tables in a specific database
 @app.route('/get-tables/<dbname>')
 @login_required
 def get_tables(dbname):
@@ -165,7 +166,6 @@ def get_tables(dbname):
     return jsonify(tables)
 
 
-# MySQL add user
 @app.route("/addUserMysql", methods=["POST"])
 def addUserMysql():
     if request.method == 'POST':
@@ -188,22 +188,21 @@ def addUserMysql():
         return jsonify({"message": "request method error", "status": "error"}), 405
 
 
-# MySQL search user
 @app.route("/userListMysql", methods=["POST"])
 def userListMysql():
     if request.method == 'POST':
         jsonData = request.get_json()
         pageNum = int(jsonData.get('pageNum'))
         pageSize = int(jsonData.get("pageSize"))
-        cur = mysql.connection.cursor()
+        tableName = str(jsonData.get("table"))
         offset = (pageNum - 1) * pageSize
 
-        # search user order by ID 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM users ORDER BY id LIMIT %s OFFSET %s", (pageSize, offset))
+        sql = "SELECT * FROM {0} LIMIT {1} OFFSET {2}".format(tableName, pageSize, offset)
+        app.logger.info(sql)
+        cur.execute(sql)
         users = cur.fetchall()
 
-        # convert to dictionary
         user_list = []
         for row in users:
             user_dict = {
@@ -219,7 +218,6 @@ def userListMysql():
         return jsonify({"status": "error", "message": "request method error"}), 405
 
 
-# MySQL update user
 @app.route("/updateUser", methods=["POST"])
 def updateUser():
     if request.method == 'POST':
@@ -232,8 +230,6 @@ def updateUser():
         # check for necessary data 
         if not all([user_id, username]):
             return jsonify({"status": "error", "message": "missing data"}), 400
-
-            # update in database
         try:
             cur = mysql.connection.cursor()
             update_query = """  
@@ -241,19 +237,16 @@ def updateUser():
                 SET username = %s, type = %s  
                 WHERE id = %s  
             """
-            # upload  
             cur.execute(update_query, (username, user_type, user_id))
             mysql.connection.commit()
 
             return jsonify({"message": "update successful!", "status": "success", "code": 200}), 200
 
         except Exception as e:
-            # error response  
             mysql.connection.rollback()
             return jsonify({"status": "error", "message": str(e)}), 500
     else:
         return jsonify({"status": "error", "message": "request method error"}), 405
-    # MySql delete user
 
 
 @app.route("/deleteUser", methods=["POST"])
@@ -261,12 +254,9 @@ def deleteUser():
     if request.method == 'POST':
         jsonData = request.get_json()
         user_id = jsonData.get('id')
-
-        # check user ID 
         if not user_id:
             return jsonify({"status": "error", "message": "missing user ID？"}), 400
 
-            # delete user data
         try:
             cur = mysql.connection.cursor()
             # SQL command 
@@ -281,35 +271,26 @@ def deleteUser():
             return jsonify({"message": "delete successful", "status": "success"}), 200
 
         except Exception as e:
-            # error response  
             mysql.connection.rollback()
             return jsonify({"status": "error", "message": str(e)}), 500
     else:
         return jsonify({"status": "error", "message": "request method error"}), 405
 
 
-# MongoDB add user
 @app.route("/addUserMongoDB", methods=["POST"])
 def addUserMongoDB():
-    # get JSON data 
     user = request.get_json()
-    # insert into MongoDB
     result = users.insert_one(user)
     return jsonify({'msg': 'added successful', "code": 200})
 
 
-# MongoDB search user
 @app.route("/userListMongoDB", methods=["POST"])
 def userListMongoDB():
-    # request JSON data
     json_data = request.get_json()
     pageNum = int(json_data.get('pageNum'))
     pageSize = int(json_data.get("pageSize"))
     skip = (pageNum - 1) * pageSize
-    # get data from MongoDB
     result = users.find().skip(skip).limit(pageSize)
-
-    # convert into dictionary  
     user_list = [
         {
             'id': str(row['_id']),
@@ -318,18 +299,14 @@ def userListMongoDB():
         } for row in result
     ]
 
-    # total user number  
     total_users = users.count_documents({})
     return jsonify({'msg': 'search successful', "code": 200, "data": user_list})
 
 
-# MongoDB update user
 @app.route("/updateUserMongoDB", methods=["POST"])
 def updateUserMongoDB():
-    # request JSON data  
     update_data = request.get_json()
     user_id = update_data.get('id')
-    # Check ID
     if not user_id:
         return jsonify({'msg': 'missing user ID', "code": 400})
 
@@ -337,9 +314,7 @@ def updateUserMongoDB():
     set_on_match1 = {k: v for k, v in set_on_match.items() if k != 'password'}
     update_operation = {"$set": set_on_match1}
 
-    # update 
     result = users.update_one({"_id": ObjectId(user_id)}, update_operation)
-    # check update
     if result.matched_count == 0:
         return jsonify({'msg': 'missing user ID', "code": 404})
     elif result.modified_count == 0:
@@ -348,38 +323,30 @@ def updateUserMongoDB():
         return jsonify({'msg': 'update successful', "code": 200})
 
 
-# MongoDB delete user
 @app.route("/deleteUserMongoDB", methods=["POST"])
 def deleteUserMongoDB():
-    # request JSON data  
     delete_data = request.get_json()
     user_id = delete_data.get('id')
     if not user_id:
         return jsonify({'msg': 'missing ID', "code": 400})
-
-        # convert user ID to ObjectId
     try:
         user_id = ObjectId(user_id)
     except InvalidDocument:
         return jsonify({'msg': 'ID invalid', "code": 400})
 
-        # delete
     result = users.delete_one({"_id": user_id})
 
-    # check delet  
     if result.deleted_count == 0:
         return jsonify({'msg': 'delete unsuccessful', "code": 404})
     else:
         return jsonify({'msg': 'delete successful', "code": 200})
 
 
-# get MongoDB collections
 @app.route('/get_data_list', methods=["POST"])
 def get_data_list():
     return jsonify({'msg': 'collections found', "code": 200, "data": mongo_db.list_collection_names()})
 
 
-############################################################################
 @app.route('/page3')
 def index():
     return render_template('uploadFile.html')
@@ -446,12 +413,8 @@ def success():
     return render_template('uploadSuccess.html', filename=filename, collection_name=collection_name)
 
 
-############################################################################
-############################################################################
 @app.route('/databases')
 def displayDatabases():
-    # if 'login' not in session:
-    #     return redirect(url_for("ManageMyDB"))
     db = pymysql.connect(host="localhost", user='root', password='root')
     cursor = db.cursor()
     cursor.execute("SHOW DATABASES")
@@ -464,13 +427,6 @@ def displayDatabases():
 
 @app.route('/ManageMyDB', methods=['GET'])
 def ManageMyDB():
-    # if 'login' in session:
-    #     mongo.db.logs.insert_one({"message": "未登录"})
-    #     return redirect(url_for("displayDatabases"))
-    # if 'loginError' in session:
-    #     mongo.db.logs.insert_one({"message": "登录错误"})
-    #     e = session['loginError']
-    # else:
     mongo.db.logs.insert_one({"message": "Log in success"})
     e = ""
     return render_template("home.html", error=e)
@@ -504,8 +460,6 @@ def executeSQL():
 
 @app.route('/databases/<database>')
 def displayTables(database):
-    # if 'login' not in session:
-    #     return redirect(url_for("ManageMyDB"))
     db = pymysql.connect(host="localhost", user='root', password='root')
     cursor = db.cursor()
     cursor.execute("SHOW TABLES FROM " + database)
@@ -539,13 +493,14 @@ def displayRows(database, table):
         finally:
             cursor.close()
             db.close()
-
-        return render_template("displayRows.html", database=database, table=table, columns=columns, rows=rows, error=error_message)
+        return render_template("displayRows.html", database=database, table=table, columns=columns, rows=rows,
+                               error=error_message)
     except Exception as e:
         error_message = "Error connecting to database: {}".format(e)
         logger.error("Error connecting to database: {}".format(e))
         mongo.db.logs.insert_one({"message": f"Connect to database: {database} error"})
         return render_template("displayRows.html", database=database, table=table, error=error_message)
+
 
 @app.after_request
 def after_request(response):
@@ -557,7 +512,108 @@ def after_request(response):
             response.headers['Access-Control-Allow-Headers'] = headers
     return response
 
-############################################################################
+
+@app.route("/addHouse", methods=["POST"])
+def addHouse():
+    if request.method == 'POST':
+        jsonData = request.get_json()
+        HouseID = jsonData.get('HouseID')
+        PostedOn = jsonData.get('PostedOn')
+        BHK = jsonData.get('BHK')
+        Rent = jsonData.get('Rent')
+        Size = jsonData.get('Size')
+        City = jsonData.get('City')
+        FurnishingStatus = jsonData.get('FurnishingStatus')
+        cur = mysql.connection.cursor()
+        sql = "INSERT INTO house_rent_dataset (HouseID,PostedOn, BHK, Rent, Size, City, FurnishingStatus) VALUES (%s,%s, %s, %s, %s, %s, %s)"
+        try:
+            cur.execute(sql, (HouseID, PostedOn, BHK, Rent, Size, City, FurnishingStatus))
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({"message": "House added successfully!", "status": "success", "code": 200}), 200
+        except Exception as e:
+            return jsonify({"message": "Failed to add house: {}".format(e), "status": "error"}), 500
+
+
+@app.route("/houseList", methods=["POST"])
+def houseList():
+    if request.method == 'POST':
+        jsonData = request.get_json()
+        pageNum = int(jsonData.get('pageNum'))
+        pageSize = int(jsonData.get("pageSize"))
+        offset = (pageNum - 1) * pageSize
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM house_rent_dataset ORDER BY HouseID LIMIT %s OFFSET %s", (pageSize, offset))
+        houses = cur.fetchall()
+        house_list = []
+        for row in houses:
+            house_dict = {
+                'HouseID': row[0],
+                'PostedOn': row[1],
+                'BHK': row[2],
+                'Rent': row[3],
+                'Size': row[4],
+                'City': row[5],
+                'FurnishingStatus': row[6]
+            }
+            house_list.append(house_dict)
+        return jsonify({"message": "Search successful", "status": "success", "data": house_list}), 200
+
+
+@app.route("/updateHouse", methods=["POST"])
+def updateHouse():
+    if request.method == 'POST':
+        jsonData = request.get_json()
+        PostedOn = jsonData.get('PostedOn')
+        HouseID = jsonData.get('HouseID')
+        BHK = jsonData.get('BHK')
+        Rent = jsonData.get('Rent')
+        Size = jsonData.get('Size')
+        City = jsonData.get('City')
+        FurnishingStatus = jsonData.get('FurnishingStatus')
+        cur = mysql.connection.cursor()
+        update_query = "UPDATE house_rent_dataset SET  PostedOn = %s, BHK = %s, Rent = %s, Size = %s, City = %s, FurnishingStatus = %s WHERE HouseID = %s"
+        cur.execute(update_query, (PostedOn, BHK, Rent, Size, City, FurnishingStatus, HouseID))
+        mysql.connection.commit()
+        return jsonify({"message": "House updated successfully!", "status": "success", "code": 200}), 200
+
+
+@app.route("/deleteHouse", methods=["POST"])
+def deleteHouse():
+    if request.method == 'POST':
+        jsonData = request.get_json()
+        HouseID = jsonData.get('HouseID')
+        cur = mysql.connection.cursor()
+        delete_query = "DELETE FROM house_rent_dataset WHERE HouseID = %s"
+        cur.execute(delete_query, (HouseID,))
+        mysql.connection.commit()
+        return jsonify({"message": "House deleted successfully", "status": "success"}), 200
+
+
+@app.route("/NormalList", methods=["POST"])
+def normalList():
+    if request.method == 'POST':
+        jsonData = request.get_json()
+        pageNum = int(jsonData.get('pageNum'))
+        pageSize = int(jsonData.get("pageSize"))
+        tableName = str(jsonData.get("tableName"))
+        dbName = str(jsonData.get("dbName"))
+
+        offset = (pageNum - 1) * pageSize
+        sql_query = "SELECT * FROM `{}` LIMIT %s OFFSET %s".format(tableName)
+        cur = mysql.connection.cursor()
+        cur.execute(f"USE {dbName};")
+        cur.execute(sql_query, (pageSize, offset))
+        table_rows = cur.fetchall()
+
+        columns = [desc[0] for desc in cur.description]
+        table_list = []
+        for row in table_rows:
+            row_dict = {columns[i]: row[i] for i in range(len(columns))}
+            table_list.append(row_dict)
+
+        return jsonify({"message": "Search successful", "status": "success", "data": table_list}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
