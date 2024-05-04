@@ -3,8 +3,6 @@
 ## Project Overview
 This project aims to develop a distributed database system to manage a large-scale house rent dataset with MySQL. The web application allows administrators and end users to interact with the database efficiently, supporting scalability, performance, and reliability.
 
-## Repository Structure
-
 ## Environment Setup
 1. **Install Python Packages:** Ensure Python is installed on your system, then install the required packages:
    \```bash
